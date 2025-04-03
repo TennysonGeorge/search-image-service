@@ -12,7 +12,7 @@ This project implements a visual similarity search engine using Weaviate vector 
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/TennysonGeorge/search-image-service.git
 cd search-image-service
 ```
 
