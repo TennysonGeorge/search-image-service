@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="VisualSearch - Find visually similar images using AI-powered image recognition technology">
+    <meta name="keywords" content="image search, AI, visual recognition, similar images, image matching">
+    <meta name="author" content="VisualSearch">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://your-domain.com/">
+    <meta property="og:title" content="VisualSearch - Find Similar Images">
+    <meta property="og:description" content="Upload an image and our AI will find visually similar matches from our database.">
+    <meta property="og:image" content="https://your-domain.com/og-image.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://your-domain.com/">
+    <meta property="twitter:title" content="VisualSearch - Find Similar Images">
+    <meta property="twitter:description" content="Upload an image and our AI will find visually similar matches from our database.">
+    <meta property="twitter:image" content="https://your-domain.com/twitter-image.jpg">
+    
+    <title>VisualSearch - Find Similar Images</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔍</text></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4ade80;
+            --warning-color: #fbbf24;
+            --danger-color: #f87171;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: var(--dark-color);
+            padding-bottom: 3rem;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: white !important;
+        }
+        
+        .main-container {
+            margin-top: 2rem;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .card-title {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .result-card {
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        
+        .result-img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+            transition: transform 0.5s ease;
+        }
+        
+        .result-card:hover .result-img {
+            transform: scale(1.05);
+        }
+        
+        .similarity-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0,0,0,0.6);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        #dropArea {
+            border: 2px dashed #ced4da;
+            border-radius: 12px;
+            padding: 2.5rem;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+        
+        #dropArea.highlight {
+            border-color: var(--primary-color);
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        #preview {
+            max-width: 100%;
+            max-height: 300px;
+            margin: 15px auto;
+            display: none;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .file-upload-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 0.6rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn-primary:disabled {
+            background-color: #a9b7ff;
+            border-color: #a9b7ff;
+        }
+        
+        .progress {
+            display: none;
+            margin: 1.2rem 0;
+            height: 10px;
+            border-radius: 5px;
+            background-color: #e9ecef;
+        }
+        
+        .progress-bar {
+            background-color: var(--primary-color);
+            border-radius: 5px;
+        }
+        
+        .results-section {
+            padding-top: 1.5rem;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .results-count {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            padding: 1rem;
+        }
+        
+        .feature-icon {
+            background-color: var(--accent-color);
+            color: white;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border-radius: 50%;
+            margin-bottom: 1rem;
+        }
+        
+        footer {
+            background-color: var(--light-color);
+            padding: 1.5rem 0;
+            margin-top: 3rem;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+        }
+        
+        .empty-results {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                margin-top: 1rem;
+            }
+            
+            #dropArea {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-camera-retro me-2"></i>VisualSearch
+            </a>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="container main-container">
+        <div class="row">
+            <div class="col-md-10 col-lg-8 mx-auto">
+                <!-- Introduction Section -->
+                <div class="text-center mb-4">
+                    <h1 class="display-5 fw-bold mb-3">Find Visually Similar Images</h1>
+                    <p class="lead text-muted mb-4">Upload an image and our AI will find visually similar matches from our database.</p>
+                </div>
+                
+                <!-- Upload Card -->
+                <div class="card mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="card-title mb-3">
+                            <i class="fas fa-cloud-upload-alt me-2"></i>Upload Image
+                        </h5>
+                        
+                        <div id="dropArea">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-file-image"></i>
+                            </div>
+                            <p class="mb-2">Drag and drop an image here or click to select</p>
+                            <p class="text-muted small">Supports JPG, JPEG and PNG files</p>
+                            <input type="file" id="fileInput" accept="image/jpeg, image/png" class="d-none">
+                            <img id="preview" class="img-fluid" alt="Preview">
+                        </div>
+                        
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button id="searchBtn" class="btn btn-primary" disabled>
+                                <i class="fas fa-search me-2"></i>Find Similar Images
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Features Section -->
+                <div class="row mb-5">
+                    <div class="col-md-4 text-center">
+                        <div class="d-flex flex-column align-items-center">
+                            <div class="feature-icon">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <h5>Fast Search</h5>
+                            <p class="text-muted small">Get results in seconds</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="d-flex flex-column align-items-center">
+                            <div class="feature-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <h5>AI Powered</h5>
+                            <p class="text-muted small">Using neural networks</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="d-flex flex-column align-items-center">
+                            <div class="feature-icon">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                            <h5>Accurate</h5>
+                            <p class="text-muted small">High-precision matching</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Results Section -->
+                <div id="results" class="results-section">
+                    <div class="results-header">
+                        <h5><i class="fas fa-images me-2"></i>Results</h5>
+                        <span id="resultsCount" class="results-count"></span>
+                    </div>
+                    
+                    <!-- Loading Indicator -->
+                    <div id="loadingIndicator" class="text-center py-5 d-none">
+                        <div class="spinner-border text-primary loading-spinner" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3">Searching for similar images...</p>
+                    </div>
+                    
+                    <!-- Results Container -->
+                    <div id="resultsContainer" class="row g-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2023 VisualSearch. Powered by Weaviate.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-decoration-none text-muted me-3">About</a>
+                    <a href="#" class="text-decoration-none text-muted me-3">Privacy</a>
+                    <a href="#" class="text-decoration-none text-muted">Contact</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropArea = document.getElementById('dropArea');
+            const fileInput = document.getElementById('fileInput');
+            const preview = document.getElementById('preview');
+            const searchBtn = document.getElementById('searchBtn');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const progressBar = document.querySelector('.progress-bar');
+            const progress = document.querySelector('.progress');
+            const resultsCount = document.getElementById('resultsCount');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            
+            let selectedFile = null;
+            
+            // Event listeners for drag and drop
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                dropArea.classList.add('highlight');
+            }
+            
+            function unhighlight() {
+                dropArea.classList.remove('highlight');
+            }
+            
+            // Handle dropped files
+            dropArea.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles(files);
+            }
+            
+            // Handle file selection via the file input
+            dropArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', function() {
+                handleFiles(this.files);
+            });
+            
+            // Process the selected file
+            function handleFiles(files) {
+                if (files.length > 0) {
+                    selectedFile = files[0];
+                    
+                    if (!selectedFile.type.match('image/jpeg') && !selectedFile.type.match('image/png')) {
+                        showAlert('Please select a valid JPEG or PNG image', 'danger');
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                        searchBtn.disabled = false;
+                    };
+                    reader.readAsDataURL(selectedFile);
+                }
+            }
+            
+            // Show alert message
+            function showAlert(message, type) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+                alertDiv.role = 'alert';
+                
+                alertDiv.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                // Insert before the drop area
+                dropArea.parentNode.insertBefore(alertDiv, dropArea);
+                
+                // Auto-dismiss after 5 seconds
+                setTimeout(() => {
+                    alertDiv.classList.remove('show');
+                    setTimeout(() => alertDiv.remove(), 300);
+                }, 5000);
+            }
+            
+            // Search for similar images
+            searchBtn.addEventListener('click', async () => {
+                if (!selectedFile) {
+                    showAlert('Please select an image first', 'warning');
+                    return;
+                }
+                
+                // Clear previous results
+                resultsContainer.innerHTML = '';
+                resultsCount.textContent = '';
+                
+                // Show loading indicator
+                loadingIndicator.classList.remove('d-none');
+                
+                // Show progress bar
+                progress.style.display = 'flex';
+                progressBar.style.width = '0%';
+                
+                const formData = new FormData();
+                formData.append('image', selectedFile);
+                
+                try {
+                    // Simulate progress
+                    let simulatedProgress = 0;
+                    const progressInterval = setInterval(() => {
+                        simulatedProgress += 5;
+                        if (simulatedProgress > 90) clearInterval(progressInterval);
+                        progressBar.style.width = `${simulatedProgress}%`;
+                    }, 100);
+                    
+                    const response = await fetch('/api/search', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    clearInterval(progressInterval);
+                    progressBar.style.width = '100%';
+                    
+                    if (!response.ok) {
+                        throw new Error('Search failed');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.success && data.results.length > 0) {
+                        resultsCount.textContent = `${data.results.length} images found`;
+                        
+                        data.results.forEach(result => {
+                            const col = document.createElement('div');
+                            col.className = 'col-sm-6 col-md-4';
+                            
+                            col.innerHTML = `
+                                <div class="card result-card">
+                                    <div class="position-relative">
+                                        <img src="${result.url}" class="result-img" alt="Similar image">
+                                        <span class="similarity-badge">
+                                            <i class="fas fa-percentage me-1"></i>${Math.round(result.similarity * 100)}% match
+                                        </span>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-muted small">
+                                                <i class="fas fa-chart-line me-1"></i>Similarity: ${result.similarity}
+                                            </span>
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-download me-1"></i>Save
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            resultsContainer.appendChild(col);
+                        });
+                    } else {
+                        resultsContainer.innerHTML = `
+                            <div class="col-12 empty-results">
+                                <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                                <h5>No similar images found</h5>
+                                <p class="text-muted">Try uploading a different image</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showAlert(`Error: ${error.message}`, 'danger');
+                    resultsContainer.innerHTML = `
+                        <div class="col-12">
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>${error.message}
+                            </div>
+                        </div>
+                    `;
+                } finally {
+                    // Hide loading indicator
+                    loadingIndicator.classList.add('d-none');
+                    
+                    setTimeout(() => {
+                        progress.style.display = 'none';
+                    }, 500);
+                    
+                    // Smooth scroll to results
+                    document.getElementById('results').scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
